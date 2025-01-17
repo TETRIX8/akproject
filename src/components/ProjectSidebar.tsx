@@ -1,6 +1,8 @@
-import { Menu, X } from "lucide-react";
+import { Menu, X, Github, Code, Mail, Heart } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import emailjs from '@emailjs/browser';
+import { useToast } from "@/components/ui/use-toast";
 
 const projects = [
   {
@@ -37,11 +39,56 @@ const projects = [
     name: "AK VPN",
     url: "http://akvpn.lovable.app",
     description: "VPN сервис"
+  },
+  {
+    name: "GitHub Tetrix8",
+    url: "https://github.com/tetrix8",
+    description: "Мой GitHub профиль",
+    icon: <Github className="h-5 w-5" />
+  },
+  {
+    name: "Донат",
+    url: "https://www.tinkoff.ru/rm/evloev.abdul_kadyr1/JLhgH6880",
+    description: "Поддержать проект",
+    icon: <Heart className="h-5 w-5 text-red-500" />
   }
 ];
 
 export function ProjectSidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const { toast } = useToast();
+
+  const handleSupport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await emailjs.send(
+        'service_vcaxptx',
+        'template_91c1fvw',
+        {
+          from_email: email,
+          message: message,
+        },
+        'aoak44iftoobsH4Xm'
+      );
+
+      toast({
+        title: "Сообщение отправлено",
+        description: "Мы свяжемся с вами в ближайшее время",
+      });
+
+      setEmail("");
+      setMessage("");
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось отправить сообщение",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -54,7 +101,7 @@ export function ProjectSidebar() {
 
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-80 transform bg-background/95 backdrop-blur-lg transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 h-full w-80 transform bg-background/95 transition-transform duration-300 ease-in-out overflow-y-auto",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -68,14 +115,47 @@ export function ProjectSidebar() {
               rel="noopener noreferrer"
               className="menu-link"
             >
-              <div>
-                <div className="font-medium">{project.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {project.description}
+              <div className="flex items-center gap-2">
+                {project.icon}
+                <div>
+                  <div className="font-medium">{project.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {project.description}
+                  </div>
                 </div>
               </div>
             </a>
           ))}
+
+          <div className="mt-8">
+            <h3 className="mb-4 text-xl font-bold flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Тех поддержка
+            </h3>
+            <form onSubmit={handleSupport} className="space-y-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Ваш email"
+                required
+                className="w-full px-3 py-2 bg-secondary rounded-md"
+              />
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ваше сообщение"
+                required
+                className="w-full px-3 py-2 bg-secondary rounded-md h-32"
+              />
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Отправить
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </>
