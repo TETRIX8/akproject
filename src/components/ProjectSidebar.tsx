@@ -106,7 +106,7 @@ export function ProjectSidebar() {
         )}
       >
         <div className="mt-16 flex flex-col gap-2 p-4">
-          <h2 className="mb-4 text-2xl font-bold">Мои проекты</h2>
+          <h2 className="mb-4 text-2xl font-bold">A-K Project</h2>
           {projects.map((project) => (
             <a
               key={project.url}
