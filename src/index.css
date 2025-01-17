@@ -53,3 +53,20 @@
 .menu-link:hover::before {
   @apply scale-y-100;
 }
+
+.typing-animation {
+  position: relative;
+}
+
+.typing-animation::after {
+  content: '|';
+  position: absolute;
+  right: -12px;
+  animation: cursor 1s infinite;
+  color: hsl(var(--primary));
+}
+
+@keyframes cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
