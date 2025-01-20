@@ -54,12 +54,23 @@ const projects = [
   }
 ];
 
-export function ProjectSidebar() {
+interface ProjectSidebarProps {
+  isTransitioning?: boolean;
+}
+
+export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isTransitioning) {
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 5000);
+    }
+  }, [isTransitioning]);
 
   const handleSupport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,40 +102,14 @@ export function ProjectSidebar() {
     }
   };
 
-  const handleToggle = () => {
-    setIsLoading(true);
-    setIsOpen(!isOpen);
-    
-    // Reset loading after 3 seconds
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
-  };
-
   return (
     <>
       <button
-        onClick={handleToggle}
+        onClick={() => setIsOpen(!isOpen)}
         className="fixed left-4 top-4 z-50 rounded-full bg-background/50 p-2 backdrop-blur-sm transition-all hover:bg-background/80"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
-
-      {isLoading && (
-        <div className="fixed inset-0 z-40 bg-background/95 flex items-center justify-center">
-          <div className="typing-animation">
-            <span className="text-primary text-xl font-mono">
-              {"<"}
-            </span>
-            <span className="text-green-500 text-xl font-mono">
-              Loading A-K Project
-            </span>
-            <span className="text-primary text-xl font-mono">
-              {"/>"}
-            </span>
-          </div>
-        </div>
-      )}
 
       <div
         className={cn(

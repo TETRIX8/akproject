@@ -1,11 +1,21 @@
 import { ProjectSidebar } from "@/components/ProjectSidebar";
-import { ProjectSlider } from "@/components/ProjectSlider";
 import { motion } from "framer-motion";
+import { Code2 } from "lucide-react";
+import { useState } from "react";
 
 const Index = () => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const handleOpenMenu = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 5000);
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <ProjectSidebar />
+      <ProjectSidebar isTransitioning={isTransitioning} />
       
       {/* Animated background */}
       <div className="fixed inset-0 -z-10">
@@ -36,8 +46,32 @@ const Index = () => {
           A-K Project
         </motion.h1>
 
-        <ProjectSlider />
+        <motion.button
+          onClick={handleOpenMenu}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Code2 className="w-5 h-5" />
+          <span className="text-lg font-medium">Проекты</span>
+        </motion.button>
       </div>
+
+      {isTransitioning && (
+        <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
+          <div className="typing-animation">
+            <span className="text-primary text-xl font-mono">
+              {"<"}
+            </span>
+            <span className="text-green-500 text-xl font-mono">
+              Loading A-K Project
+            </span>
+            <span className="text-primary text-xl font-mono">
+              {"/>"}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
