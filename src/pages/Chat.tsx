@@ -33,7 +33,7 @@ const Chat = () => {
       const chat = model.startChat({
         history: messages.map(msg => ({
           role: msg.role,
-          parts: msg.content,
+          parts: [{ text: msg.content }],
         })),
       });
 
