@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import emailjs from '@emailjs/browser';
 import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
 
 const projects = [
   {
@@ -113,19 +114,30 @@ export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps)
 
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-80 transform bg-background/95 transition-transform duration-300 ease-in-out overflow-y-auto",
+          "fixed left-0 top-0 z-40 h-full w-80 transform bg-background/95 transition-transform duration-300 ease-in-out overflow-y-auto backdrop-blur-lg border-r border-primary/20",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="mt-16 flex flex-col gap-2 p-4">
-          <h2 className="mb-4 text-2xl font-bold">A-K Project</h2>
-          {projects.map((project) => (
-            <a
+          <motion.h2 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-4 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF]"
+          >
+            A-K Project
+          </motion.h2>
+          
+          {projects.map((project, index) => (
+            <motion.a
               key={project.url}
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
               className="menu-link"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <div className="flex items-center gap-2">
                 {project.icon}
@@ -136,10 +148,15 @@ export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps)
                   </div>
                 </div>
               </div>
-            </a>
+            </motion.a>
           ))}
 
-          <div className="mt-8">
+          <motion.div 
+            className="mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
             <h3 className="mb-4 text-xl font-bold flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Тех поддержка
@@ -167,7 +184,7 @@ export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps)
                 Отправить
               </button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
     </>

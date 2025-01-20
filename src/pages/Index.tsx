@@ -59,16 +59,37 @@ const Index = () => {
 
       {isTransitioning && (
         <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
-          <div className="typing-animation">
-            <span className="text-primary text-xl font-mono">
-              {"<"}
-            </span>
-            <span className="text-green-500 text-xl font-mono">
-              Loading A-K Project
-            </span>
-            <span className="text-primary text-xl font-mono">
-              {"/>"}
-            </span>
+          <div className="code-block">
+            <div className="code-line" style={{ animationDelay: '0.5s' }}>
+              <span className="text-blue-400">def</span>
+              <span className="text-green-400"> load_project</span>
+              <span className="text-yellow-400">(</span>name: str<span className="text-yellow-400">)</span>:
+            </div>
+            <div className="code-line" style={{ animationDelay: '1s' }}>
+              <span className="text-purple-400">    print</span>
+              <span className="text-yellow-400">(</span>
+              <span className="text-green-400">"Initializing A-K Project..."</span>
+              <span className="text-yellow-400">)</span>
+            </div>
+            <div className="code-line" style={{ animationDelay: '1.5s' }}>
+              <span className="text-purple-400">    time.sleep</span>
+              <span className="text-yellow-400">(</span>2<span className="text-yellow-400">)</span>
+            </div>
+            <div className="code-line" style={{ animationDelay: '2s' }}>
+              <span className="text-blue-400">    return</span> {"{"}
+            </div>
+            <div className="code-line" style={{ animationDelay: '2.5s' }}>
+              <span className="text-green-400">        "status": "loading",</span>
+            </div>
+            <div className="code-line" style={{ animationDelay: '3s' }}>
+              <span className="text-green-400">        "project": "A-K Project",</span>
+            </div>
+            <div className="code-line" style={{ animationDelay: '3.5s' }}>
+              <span className="text-green-400">        "progress": "100%"</span>
+            </div>
+            <div className="code-line" style={{ animationDelay: '4s' }}>
+              {"    }"}
+            </div>
           </div>
         </div>
       )}

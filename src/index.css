@@ -42,7 +42,16 @@
 }
 
 .menu-link {
-  @apply relative flex items-center gap-2 px-4 py-2 text-lg transition-all duration-300 hover:bg-primary/20;
+  @apply relative flex items-center gap-2 px-4 py-2 text-lg transition-all duration-300;
+  background: linear-gradient(to right, transparent 50%, rgba(139, 92, 246, 0.1) 50%);
+  background-size: 200% 100%;
+  background-position: left bottom;
+  transition: all .3s ease-out;
+}
+
+.menu-link:hover {
+  background-position: right bottom;
+  transform: translateX(10px);
 }
 
 .menu-link::before {
@@ -56,6 +65,9 @@
 
 .typing-animation {
   position: relative;
+  overflow: hidden;
+  white-space: pre-wrap;
+  animation: typing 4s steps(40, end);
 }
 
 .typing-animation::after {
@@ -69,4 +81,31 @@
 @keyframes cursor {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+.code-block {
+  @apply font-mono text-sm bg-black/50 p-4 rounded-lg;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.code-line {
+  @apply opacity-0;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
