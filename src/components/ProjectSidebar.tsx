@@ -1,9 +1,9 @@
-import { Menu, X, Github, Code, Mail, Heart } from "lucide-react";
+import { Menu, X, Github, Code, Mail, Heart, MoreVertical } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import emailjs from '@emailjs/browser';
 import { useToast } from "@/components/ui/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const projects = [
   {
@@ -61,6 +61,7 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const { toast } = useToast();
@@ -105,6 +106,42 @@ export function ProjectSidebar({ isTransitioning = false }: ProjectSidebarProps)
 
   return (
     <>
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-2">
+        <button
+          onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
+          className="rounded-full bg-background/50 p-2 backdrop-blur-sm transition-all hover:bg-background/80"
+        >
+          <MoreVertical className="h-6 w-6" />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isQuickMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed right-4 top-16 z-50 w-48 rounded-lg bg-background/95 p-2 shadow-lg backdrop-blur-sm border border-primary/20"
+          >
+            <div className="flex flex-col gap-1">
+              {projects.slice(0, 4).map((project) => (
+                <a
+                  key={project.url}
+                  href={project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-primary/10"
+                >
+                  {project.icon || <Code className="h-4 w-4" />}
+                  <span>{project.name}</span>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed left-4 top-4 z-50 rounded-full bg-background/50 p-2 backdrop-blur-sm transition-all hover:bg-background/80"
