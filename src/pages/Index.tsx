@@ -21,8 +21,8 @@ const Index = () => {
     setTransitionType("chat");
     setIsTransitioning(true);
     setTimeout(() => {
-      setIsTransitioning(false);
       navigate("/chat");
+      setIsTransitioning(false);
     }, 5000);
   };
 
