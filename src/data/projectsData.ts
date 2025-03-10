@@ -75,13 +75,13 @@ export const projectsData = [
     url: "https://github.com/tetrix8",
     description: "Мой GitHub профиль",
     image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2088&auto=format&fit=crop",
-    icon: <Github className="h-5 w-5" /> as React.ReactNode
+    icon: React.createElement(Github, { className: "h-5 w-5" })
   },
   {
     name: "Донат",
     url: "https://www.tinkoff.ru/rm/evloev.abdul_kadyr1/JLhgH6880",
     description: "Поддержать проект",
     image: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=2071&auto=format&fit=crop",
-    icon: <Heart className="h-5 w-5 text-red-500" /> as React.ReactNode
+    icon: React.createElement(Heart, { className: "h-5 w-5 text-red-500" })
   }
 ];
