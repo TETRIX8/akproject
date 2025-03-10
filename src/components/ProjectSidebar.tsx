@@ -1,3 +1,4 @@
+
 import { Menu, X, Github, Code, Mail, Heart, MoreVertical } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,27 @@ const projects = [
     name: "AK VPN",
     url: "http://akvpn.lovable.app",
     description: "VPN сервис"
+  },
+  // New projects added below
+  {
+    name: "Python Обучение",
+    url: "https://python.lovable.app/",
+    description: "Сайт для изучения Python"
+  },
+  {
+    name: "МКСУ Колледж",
+    url: "https://moksu.lovable.app/",
+    description: "Сайт для колледжа"
+  },
+  {
+    name: "AK GPT",
+    url: "https://akgpt.lovable.app/",
+    description: "Чат GPT проект"
+  },
+  {
+    name: "AK DeepSeek",
+    url: "https://akdeepseek.lovable.app/",
+    description: "Чат с DeepSeek"
   },
   {
     name: "GitHub Tetrix8",

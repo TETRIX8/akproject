@@ -55,6 +55,31 @@ const projects = [
     description: "VPN сервис",
     image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2070&auto=format&fit=crop"
   },
+  // New projects added below
+  {
+    name: "Python Обучение",
+    url: "https://python.lovable.app/",
+    description: "Сайт для изучения Python",
+    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=3543&auto=format&fit=crop"
+  },
+  {
+    name: "МКСУ Колледж",
+    url: "https://moksu.lovable.app/",
+    description: "Сайт для колледжа",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=3882&auto=format&fit=crop"
+  },
+  {
+    name: "AK GPT",
+    url: "https://akgpt.lovable.app/",
+    description: "Чат GPT проект",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=5530&auto=format&fit=crop"
+  },
+  {
+    name: "AK DeepSeek",
+    url: "https://akdeepseek.lovable.app/",
+    description: "Чат с DeepSeek",
+    image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2070&auto=format&fit=crop"
+  },
   {
     name: "GitHub Tetrix8",
     url: "https://github.com/tetrix8",
