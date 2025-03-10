@@ -41,7 +41,7 @@ const projects = [
     name: "AK Generate",
     url: "http://akgenerate.lovable.app",
     description: "Сайт для генерации изображения",
-    image: "https://images.unsplash.com/photo-1655720035861-ba4755e3bb23?q=80&w=1932&auto=format&fit=crop"
+    image: "https://pisatel.info/wp-content/uploads/2023/05/%D0%93%D0%B5%D0%BD%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80-%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B9-%D0%BF%D0%BE-%D1%82%D0%B5%D0%BA%D1%81%D1%82%D1%83-%D0%B8-%D0%BE%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D1%8E-%D0%BD%D0%B5%D0%B9%D1%80%D0%BE%D1%81%D0%B5%D1%82%D1%8C.webp"
   },
   {
     name: "Evloev Film",
