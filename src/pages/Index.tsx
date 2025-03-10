@@ -1,3 +1,4 @@
+
 import { ProjectSidebar } from "@/components/ProjectSidebar";
 import { motion } from "framer-motion";
 import { Code2, MessageSquareText } from "lucide-react";
@@ -13,6 +14,7 @@ const Index = () => {
     setTransitionType("projects");
     setIsTransitioning(true);
     setTimeout(() => {
+      navigate("/projects");
       setIsTransitioning(false);
     }, 5000);
   };
