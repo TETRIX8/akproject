@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Github, Code, Heart } from "lucide-react";
+import { ArrowLeft, Github, Code, Heart, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const projects = [
@@ -79,6 +79,13 @@ const projects = [
     url: "https://akdeepseek.lovable.app/",
     description: "Чат с DeepSeek",
     image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2070&auto=format&fit=crop"
+  },
+  {
+    name: "Обучение базовым знаниям ПК",
+    url: "https://akbasicpk.netlify.app/",
+    description: "Сайт для обучения базовым знаниям ПК",
+    image: "https://images.unsplash.com/photo-1610563166150-b34df4f3bcd6?q=80&w=2076&auto=format&fit=crop",
+    icon: <GraduationCap className="h-5 w-5" />
   },
   {
     name: "GitHub Tetrix8",

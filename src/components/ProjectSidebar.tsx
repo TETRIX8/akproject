@@ -1,5 +1,5 @@
 
-import { Menu, X, Github, Code, Mail, Heart, MoreVertical } from "lucide-react";
+import { Menu, X, Github, Code, Mail, Heart, MoreVertical, GraduationCap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import emailjs from '@emailjs/browser';
@@ -62,6 +62,12 @@ const projects = [
     name: "AK DeepSeek",
     url: "https://akdeepseek.lovable.app/",
     description: "Чат с DeepSeek"
+  },
+  {
+    name: "Обучение базовым знаниям ПК",
+    url: "https://akbasicpk.netlify.app/",
+    description: "Сайт для обучения базовым знаниям ПК",
+    icon: <GraduationCap className="h-5 w-5" />
   },
   {
     name: "GitHub Tetrix8",
