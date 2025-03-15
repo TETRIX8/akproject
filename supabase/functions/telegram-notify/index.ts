@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -18,7 +17,7 @@ serve(async (req) => {
     
     if (!message || !user_name) {
       return new Response(
-        JSON.stringify({ error: 'Message and user_name are required' }), 
+        JSON.stringify({ error: 'Требуются поля сообщения и имени пользователя' }), 
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -52,7 +51,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Ошибка:", error);
     
     return new Response(
       JSON.stringify({ error: error.message }), 

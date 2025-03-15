@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useRef } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,11 +18,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyCCIUAwYkXrCkYbGjBpBB4PHGMVLG-3i1k");
-
 interface Message {
   id?: string;
-  role: "user" | "assistant";
+  role: "user" | "waiting";
   content: string;
   userName?: string;
   created_at?: string;
@@ -35,12 +32,20 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [nameDialogOpen, setNameDialogOpen] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "default">("default");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [lastFetchTime, setLastFetchTime] = useState<Date>(new Date());
 
-  // Load messages and subscribe to new ones
+  // Запрос разрешения на уведомления
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Загрузка сообщений и подписка на новые
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -50,7 +55,7 @@ const Chat = () => {
           .order('created_at', { ascending: true });
           
         if (error) {
-          console.error("Error fetching messages:", error);
+          console.error("Ошибка при загрузке сообщений:", error);
           return;
         }
         
@@ -64,14 +69,14 @@ const Chat = () => {
         
         setMessages(formattedMessages);
       } catch (error) {
-        console.error("Error loading messages:", error);
+        console.error("Ошибка при загрузке сообщений:", error);
       }
     };
 
-    // Fetch initial messages
+    // Загрузка начальных сообщений
     fetchMessages();
     
-    // Subscribe to new messages
+    // Подписка на новые сообщения
     const subscription = supabase
       .channel('public:chat_messages')
       .on('postgres_changes', { 
@@ -81,8 +86,20 @@ const Chat = () => {
       }, (payload) => {
         const newMessage = payload.new as any;
         
-        // Only add the message if it's newer than our last fetch
+        // Если сообщение новее последней загрузки
         if (new Date(newMessage.created_at) > lastFetchTime) {
+          // Отправка уведомления при новом сообщении
+          if (Notification.permission === "granted" && newMessage.user_name !== userName) {
+            const notification = new Notification("Новое сообщение", {
+              body: `${newMessage.user_name}: ${newMessage.content}`,
+              icon: "/favicon.ico"
+            });
+            
+            notification.onclick = function() {
+              window.focus();
+            };
+          }
+          
           setMessages(prevMessages => [
             ...prevMessages,
             {
@@ -101,9 +118,9 @@ const Chat = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [lastFetchTime]);
+  }, [lastFetchTime, userName]);
 
-  // Auto-scroll to bottom when messages change
+  // Автопрокрутка вниз при изменении сообщений
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -113,30 +130,23 @@ const Chat = () => {
     if (userName.trim()) {
       setNameDialogOpen(false);
       toast({
-        title: "Welcome to the chat!",
-        description: `You've joined as ${userName}`,
+        title: "Добро пожаловать в чат!",
+        description: `Вы присоединились как ${userName}`,
       });
     }
   };
 
-  const sendToTelegram = async (userName: string, message: string) => {
-    try {
-      const botToken = "8038017389:AAFOlyzDr_-vO5uuEF2rXFFG6WSDFWapK9Q";
-      const chatId = "7035622180";
-      const text = `${userName}: ${message}`;
+  const requestNotificationPermission = async () => {
+    if ("Notification" in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
       
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text
-        }),
-      });
-    } catch (error) {
-      console.error("Error sending to Telegram:", error);
+      if (permission === "granted") {
+        toast({
+          title: "Уведомления включены",
+          description: "Теперь вы будете получать уведомления о новых сообщениях",
+        });
+      }
     }
   };
 
@@ -146,18 +156,19 @@ const Chat = () => {
     const userMessage = input.trim();
     setInput("");
     
-    // Add user message to local state optimistically
-    const newMessageObj = { 
-      role: "user" as const, 
-      content: userMessage,
+    // Добавляем сообщение "ожидается ответ"
+    const waitingMsgId = Date.now().toString();
+    setMessages(prev => [...prev, { 
+      id: waitingMsgId, 
+      role: "waiting", 
+      content: "Ожидается ответ...",
       userName: userName
-    };
+    }]);
     
-    setMessages(prev => [...prev, newMessageObj]);
     setIsLoading(true);
 
     try {
-      // Store message in Supabase
+      // Сохраняем сообщение в Supabase
       const { error } = await supabase
         .from('chat_messages')
         .insert([
@@ -168,40 +179,25 @@ const Chat = () => {
         ]);
         
       if (error) {
-        console.error("Error saving message:", error);
+        console.error("Ошибка при сохранении сообщения:", error);
         toast({
           variant: "destructive",
-          title: "Failed to send message",
-          description: "Please try again later."
+          title: "Ошибка отправки",
+          description: "Пожалуйста, попробуйте позже."
         });
       }
       
-      // Send to Telegram
-      await sendToTelegram(userName, userMessage);
-
-      // Get AI response
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const chat = model.startChat({
-        history: messages
-          .filter(msg => msg.role === "user" || msg.role === "assistant")
-          .map(msg => ({
-            role: msg.role,
-            parts: [{ text: msg.content }],
-          })),
-      });
-
-      const result = await chat.sendMessage(userMessage);
-      const response = await result.response;
-      const text = response.text();
-
-      setMessages(prev => [...prev, { role: "assistant", content: text }]);
+      // Удаляем сообщение "ожидается ответ" после успешной отправки
+      setMessages(prev => prev.filter(msg => msg.id !== waitingMsgId));
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Ошибка при отправке сообщения:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Sorry, I encountered an error. Please try again."
+        title: "Ошибка",
+        description: "Извините, произошла ошибка. Пожалуйста, попробуйте снова."
       });
+      // Удаляем сообщение "ожидается ответ" в случае ошибки
+      setMessages(prev => prev.filter(msg => msg.id !== waitingMsgId));
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +207,7 @@ const Chat = () => {
     if (content.includes("```")) {
       const parts = content.split("```");
       return parts.map((part, index) => {
-        if (index % 2 === 1) { // Code block
+        if (index % 2 === 1) { // Код
           return (
             <pre key={index} className="bg-black/20 p-4 rounded-lg my-2 overflow-x-auto">
               <code className="text-sm text-green-400">{part}</code>
@@ -237,12 +233,22 @@ const Chat = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6]">
-            AK Chat
+            AK Чат
           </h1>
           {userName && (
             <div className="ml-auto px-3 py-1 rounded-full bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6] text-white text-sm">
               {userName}
             </div>
+          )}
+          {notificationPermission !== "granted" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={requestNotificationPermission}
+              className="ml-2"
+            >
+              Включить уведомления
+            </Button>
           )}
         </div>
 
@@ -256,43 +262,40 @@ const Chat = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex ${message.role === "assistant" ? "justify-start" : "justify-end"}`}
+                  className={`flex ${message.role === "waiting" ? "justify-start" : message.userName === userName ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] ${
-                      message.role === "assistant" 
-                        ? "bg-white/10" 
-                        : "bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6]"
+                    className={`max-w-[80%] rounded-lg ${
+                      message.role === "waiting"
+                        ? "bg-gray-700/50 text-white/70" 
+                        : message.userName === userName
+                          ? "bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6]"
+                          : "bg-white/10"
                     }`}
                   >
-                    {message.role === "user" && message.userName && (
+                    {message.role !== "waiting" && message.userName && (
                       <div className="px-2 pt-1 text-xs text-white/90 font-medium">
                         {message.userName}
                       </div>
                     )}
-                    <div className="p-4 rounded-lg">
-                      {formatMessage(message.content)}
+                    <div className="p-4">
+                      {message.role === "waiting" ? (
+                        <div className="flex items-center gap-2">
+                          <span>{message.content}</span>
+                          <div className="flex gap-1">
+                            <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" />
+                            <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                            <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
+                          </div>
+                        </div>
+                      ) : (
+                        formatMessage(message.content)
+                      )}
                     </div>
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
-            
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
-              >
-                <div className="bg-white/10 p-4 rounded-lg">
-                  <div className="flex gap-2">
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" />
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
@@ -302,7 +305,7 @@ const Chat = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type your message..."
+            placeholder="Введите сообщение..."
             className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
             disabled={nameDialogOpen || isLoading}
           />
@@ -320,24 +323,24 @@ const Chat = () => {
         <DialogContent className="sm:max-w-md bg-gradient-to-br from-[#1f1f1f] to-[#2d2d2d] text-white border-white/10">
           <DialogHeader>
             <DialogTitle className="text-xl bg-clip-text text-transparent bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6]">
-              Welcome to AK Chat
+              Добро пожаловать в AK Чат
             </DialogTitle>
             <DialogDescription className="text-white/70">
-              Please enter your name to join the chat
+              Пожалуйста, введите ваше имя для присоединения к чату
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleNameSubmit}>
             <div className="grid gap-4 py-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name" className="text-white">
-                  Your Name
+                  Ваше имя
                 </Label>
                 <Input
                   id="name"
                   autoFocus
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your name"
+                  placeholder="Введите ваше имя"
                   className="bg-white/10 border-white/20 text-white"
                 />
               </div>
@@ -348,7 +351,7 @@ const Chat = () => {
                 disabled={!userName.trim()}
                 className="bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6] hover:opacity-90 w-full"
               >
-                Join Chat
+                Присоединиться к чату
               </Button>
             </DialogFooter>
           </form>
