@@ -221,8 +221,8 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] text-white p-4">
-      <div className="max-w-4xl mx-auto flex flex-col h-screen">
+    <div className="min-h-screen p-4">
+      <div className="max-w-4xl mx-auto flex flex-col h-screen backdrop-blur-sm bg-black/30 rounded-lg p-4">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
