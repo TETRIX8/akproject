@@ -1,37 +1,43 @@
+
 import { ProjectSidebar } from "@/components/ProjectSidebar";
 import { motion } from "framer-motion";
 import { Code2, MessageSquareText } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import VideoBackground from "@/components/VideoBackground";
 
 const Index = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionType, setTransitionType] = useState<"projects" | "chat" | null>(null);
+  const [showLoadingVideo, setShowLoadingVideo] = useState(false);
+  const [destinationPath, setDestinationPath] = useState<string>("");
   const navigate = useNavigate();
 
   const handleOpenMenu = () => {
     setTransitionType("projects");
     setIsTransitioning(true);
-    setTimeout(() => {
-      navigate("/projects");
-      setIsTransitioning(false);
-    }, 5000);
+    setShowLoadingVideo(true);
+    setDestinationPath("/projects");
   };
 
   const handleOpenChat = () => {
     setTransitionType("chat");
     setIsTransitioning(true);
+    setShowLoadingVideo(true);
+    setDestinationPath("/chat");
+  };
+
+  const handleVideoEnded = () => {
+    setShowLoadingVideo(false);
     setTimeout(() => {
-      navigate("/chat");
+      navigate(destinationPath);
       setIsTransitioning(false);
-    }, 5000);
+    }, 500);
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
       <ProjectSidebar isTransitioning={isTransitioning} />
-      
-      
       
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
         <motion.h1 
@@ -66,7 +72,13 @@ const Index = () => {
         </div>
       </div>
 
-      {isTransitioning && (
+      {showLoadingVideo && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <VideoBackground muted={false} onEnded={handleVideoEnded} autoPlay={true} />
+        </div>
+      )}
+
+      {isTransitioning && !showLoadingVideo && (
         <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
           <div className="code-block">
             {transitionType === "chat" ? (
