@@ -15,8 +15,9 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({ mousePosition }
     
     if (!canvas || !textElement) return;
 
-    // Initialize WebGL
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    // Initialize WebGL context with proper typing
+    const gl = canvas.getContext('webgl') as WebGLRenderingContext || 
+               canvas.getContext('experimental-webgl') as WebGLRenderingContext;
     
     if (!gl) {
       console.error('WebGL not supported in your browser');
@@ -54,6 +55,8 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({ mousePosition }
     // Compile shader
     function compileShader(source: string, type: number) {
       const shader = gl.createShader(type);
+      if (!shader) return null;
+      
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       
@@ -72,6 +75,8 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({ mousePosition }
     if (!vertexShader || !fragmentShader) return;
     
     const program = gl.createProgram();
+    if (!program) return;
+    
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
@@ -196,7 +201,9 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({ mousePosition }
       
       // Draw particles
       for (let i = 0; i < particleCount; i++) {
-        gl.uniform3f(uColor, colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+        if (uColor) {
+          gl.uniform3f(uColor, colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+        }
         gl.drawArrays(gl.POINTS, i, 1);
       }
       
@@ -209,11 +216,11 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({ mousePosition }
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationFrameId);
-      gl.deleteProgram(program);
-      gl.deleteShader(vertexShader);
-      gl.deleteShader(fragmentShader);
-      gl.deleteBuffer(positionBuffer);
-      gl.deleteBuffer(colorBuffer);
+      if (program) gl.deleteProgram(program);
+      if (vertexShader) gl.deleteShader(vertexShader);
+      if (fragmentShader) gl.deleteShader(fragmentShader);
+      if (positionBuffer) gl.deleteBuffer(positionBuffer);
+      if (colorBuffer) gl.deleteBuffer(colorBuffer);
     };
   }, [mousePosition]);
 
