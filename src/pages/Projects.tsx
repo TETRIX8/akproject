@@ -5,11 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Github, GraduationCap, Heart } from "lucide-react";
 
-// Import the new components
+// Import the components
 import ProjectHeader from "@/components/projects/ProjectHeader";
 import ProjectCarousel from "@/components/projects/ProjectCarousel";
 import ProjectModal from "@/components/projects/ProjectModal";
-import ParallaxBackground from "@/components/projects/ParallaxBackground";
+import ParticleBackground from "@/components/projects/ParticleBackground";
 import { useMousePosition } from "@/hooks/useMousePosition";
 
 const projects = [
@@ -151,7 +151,7 @@ const Projects = () => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <ParallaxBackground mousePosition={mousePosition} />
+        <ParticleBackground mousePosition={mousePosition} />
 
         <div className="container mx-auto px-4 py-10 relative z-10">
           <ProjectHeader onNavigate={handleNavigate} />
