@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -104,7 +103,6 @@ const projects = [
 ];
 
 const Projects = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
   const [exitingPage, setExitingPage] = useState(false);
@@ -126,9 +124,7 @@ const Projects = () => {
   // Handle navigation with animation
   const handleNavigate = (path) => {
     setExitingPage(true);
-    setTimeout(() => {
-      navigate(path);
-    }, 500);
+    window.navigateWithLoading(path);
   };
 
   // Handle project click
