@@ -1,250 +1,205 @@
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Code2, Terminal, Zap, Sparkles } from "lucide-react";
 
 interface CodeLoadingAnimationProps {
-  duration?: number;
-  onComplete?: () => void;
+  onComplete: () => void;
 }
 
-const CodeLoadingAnimation: React.FC<CodeLoadingAnimationProps> = ({ 
-  duration = 5000, 
-  onComplete 
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const codeLines = useRef<HTMLDivElement[]>([]);
+const CodeLoadingAnimation = ({ onComplete }: CodeLoadingAnimationProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showSparkles, setShowSparkles] = useState(false);
+
+  const loadingSteps = [
+    { text: "Инициализация системы...", icon: Terminal },
+    { text: "Загрузка компонентов...", icon: Code2 },
+    { text: "Подключение к GitHub API...", icon: Zap },
+    { text: "Готово! Добро пожаловать!", icon: Sparkles }
+  ];
 
   useEffect(() => {
-    // Setup WebGL
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const gl = canvas.getContext('webgl') as WebGLRenderingContext;
-    if (!gl) {
-      console.error('WebGL not supported');
-      return;
-    }
-
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-    
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Shader sources
-    const vertexShaderSource = `
-      attribute vec2 aPosition;
-      void main() {
-          gl_Position = vec4(aPosition, 0.0, 1.0);
-          gl_PointSize = 4.0;
+    const timer = setTimeout(() => {
+      if (currentStep < loadingSteps.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        setShowSparkles(true);
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
       }
-    `;
+    }, 800);
 
-    const fragmentShaderSource = `
-      precision mediump float;
-      uniform vec3 uColor;
-      void main() {
-          gl_FragColor = vec4(uColor, 1.0);
-      }
-    `;
-
-    // Compile shader
-    const compileShader = (source: string, type: number) => {
-      const shader = gl.createShader(type);
-      if (!shader) {
-        console.error('Failed to create shader');
-        return null;
-      }
-      
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      
-      return shader;
-    };
-
-    // Create shader program
-    const vertexShader = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
-    const fragmentShader = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
-    
-    if (!vertexShader || !fragmentShader) {
-      return;
-    }
-    
-    const program = gl.createProgram();
-    if (!program) {
-      console.error('Failed to create program');
-      return;
-    }
-    
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program linking error:', gl.getProgramInfoLog(program));
-      return;
-    }
-    
-    gl.useProgram(program);
-
-    // Create particles
-    const particleCount = 400;
-    const particles: {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      color: [number, number, number];
-    }[] = [];
-    
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * 2 - 1,
-        y: Math.random() * 2 - 1,
-        vx: (Math.random() * 0.01 - 0.005) * 2,
-        vy: (Math.random() * 0.01 - 0.005) * 2,
-        color: [Math.random(), Math.random(), Math.random()]
-      });
-    }
-
-    // Position buffer
-    const positions = new Float32Array(particleCount * 2);
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    
-    // Attribute location
-    const aPosition = gl.getAttribLocation(program, 'aPosition');
-    gl.enableVertexAttribArray(aPosition);
-    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
-    
-    // Uniform location
-    const uColor = gl.getUniformLocation(program, 'uColor');
-
-    // Animation loop
-    let animationId: number;
-    let startTime = Date.now();
-    let time = 0;
-
-    const animate = () => {
-      time += 0.01;
-      const elapsedTime = Date.now() - startTime;
-      
-      // Update particles
-      for (let i = 0; i < particleCount; i++) {
-        const p = particles[i];
-        
-        // Update position
-        p.x += p.vx;
-        p.y += p.vy;
-        
-        // Boundary check
-        if (p.x < -1 || p.x > 1) p.vx *= -1;
-        if (p.y < -1 || p.y > 1) p.vy *= -1;
-        
-        // Update buffer
-        positions[i * 2] = p.x;
-        positions[i * 2 + 1] = p.y;
-      }
-      
-      // Clear and prepare
-      gl.clearColor(0.05, 0.05, 0.1, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      
-      // Update position buffer
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
-      
-      // Draw particles
-      for (let i = 0; i < particleCount; i++) {
-        const p = particles[i];
-        const r = 0.5 + 0.5 * Math.sin(time + i * 0.05);
-        const g = 0.5 + 0.5 * Math.cos(time * 1.3 + i * 0.05);
-        const b = 0.7 + 0.3 * Math.sin(time * 0.7 + i * 0.05);
-        
-        gl.uniform3f(uColor, r, g, b);
-        gl.drawArrays(gl.POINTS, i, 1);
-      }
-      
-      // Continue animation if not complete
-      if (elapsedTime < duration) {
-        animationId = requestAnimationFrame(animate);
-      } else if (onComplete) {
-        onComplete();
-      }
-    };
-    
-    animationId = requestAnimationFrame(animate);
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationId);
-      
-      if (gl) {
-        gl.deleteProgram(program);
-        if (vertexShader) gl.deleteShader(vertexShader);
-        if (fragmentShader) gl.deleteShader(fragmentShader);
-        if (positionBuffer) gl.deleteBuffer(positionBuffer);
-      }
-    };
-  }, [duration, onComplete]);
-
-  useEffect(() => {
-    // Simulate typing code
-    const codeSnippets = [
-      { code: "import { A-K } from '@project/core';", delay: 500 },
-      { code: "function initializeProject() {", delay: 1000 },
-      { code: "  console.log('Loading A-K Project...');", delay: 1500 },
-      { code: "  return new Promise((resolve) => {", delay: 2000 },
-      { code: "    setTimeout(() => resolve('Ready'), 2000);", delay: 2500 },
-      { code: "  });", delay: 3000 },
-      { code: "}", delay: 3500 },
-      { code: "// Executing project initialization", delay: 4000 },
-      { code: "initializeProject().then(status => {", delay: 4500 },
-      { code: "  console.log(`A-K Project status: ${status}`);", delay: 4800 },
-      { code: "});", delay: 5000 }
-    ];
-
-    codeSnippets.forEach((snippet, index) => {
-      const codeElement = document.createElement('div');
-      codeElement.className = 'code-line opacity-0';
-      codeElement.innerHTML = `<span class="text-green-400">${snippet.code}</span>`;
-      codeElement.style.animationDelay = `${snippet.delay}ms`;
-      
-      if (textRef.current) {
-        textRef.current.appendChild(codeElement);
-        codeLines.current.push(codeElement);
-      }
-    });
-
-    return () => {
-      codeLines.current.forEach(element => {
-        element.remove();
-      });
-      codeLines.current = [];
-    };
-  }, []);
+    return () => clearTimeout(timer);
+  }, [currentStep, onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95">
-      <canvas ref={canvasRef} className="absolute inset-0" />
-      <div 
-        ref={textRef}
-        className="code-block relative z-10 font-mono text-sm p-4 rounded-lg bg-black bg-opacity-50 max-w-md"
-      >
-        <div className="text-center mb-4 text-lg text-primary">A-K Project Loading</div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
+    >
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-purple-500/30 rounded-full"
+            animate={{
+              x: [0, Math.random() * window.innerWidth],
+              y: [0, Math.random() * window.innerHeight],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
       </div>
-    </div>
+
+      <div className="relative z-10 max-w-md w-full mx-4">
+        {/* Main loading container */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gray-900/80 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8 shadow-2xl"
+        >
+          {/* Header */}
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
+            >
+              <Code2 className="w-8 h-8 text-white" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-white mb-2">A-K Project</h2>
+            <p className="text-gray-400">Загрузка портфолио...</p>
+          </motion.div>
+
+          {/* Loading steps */}
+          <div className="space-y-4">
+            <AnimatePresence mode="wait">
+              {loadingSteps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = index === currentStep;
+                const isCompleted = index < currentStep;
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ 
+                      opacity: isActive || isCompleted ? 1 : 0.3,
+                      x: 0,
+                      scale: isActive ? 1.05 : 1
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                      isActive 
+                        ? 'bg-purple-600/20 border border-purple-500/50' 
+                        : isCompleted 
+                        ? 'bg-green-600/20 border border-green-500/50'
+                        : 'bg-gray-800/50 border border-gray-700/50'
+                    }`}
+                  >
+                    <motion.div
+                      animate={isActive ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.5, repeat: isActive ? Infinity : 0 }}
+                    >
+                      <Icon className={`w-5 h-5 ${
+                        isActive ? 'text-purple-400' : 
+                        isCompleted ? 'text-green-400' : 'text-gray-500'
+                      }`} />
+                    </motion.div>
+                    
+                    <span className={`text-sm font-medium ${
+                      isActive ? 'text-white' : 
+                      isCompleted ? 'text-green-300' : 'text-gray-400'
+                    }`}>
+                      {step.text}
+                    </span>
+
+                    {isCompleted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="ml-auto"
+                      >
+                        <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-2 h-2 bg-white rounded-full"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          {/* Progress bar */}
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${((currentStep + 1) / loadingSteps.length) * 100}%` }}
+            transition={{ duration: 0.5 }}
+            className="mt-6 h-2 bg-gray-700 rounded-full overflow-hidden"
+          >
+            <motion.div
+              className="h-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"
+              animate={{
+                background: [
+                  "linear-gradient(90deg, #8b5cf6, #3b82f6)",
+                  "linear-gradient(90deg, #3b82f6, #8b5cf6)",
+                  "linear-gradient(90deg, #8b5cf6, #3b82f6)",
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+
+          {/* Sparkles effect when complete */}
+          <AnimatePresence>
+            {showSparkles && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                    animate={{
+                      scale: [0, 1, 0],
+                      rotate: [0, 360],
+                      x: [0, Math.cos(i * 30) * 100],
+                      y: [0, Math.sin(i * 30) * 100],
+                    }}
+                    transition={{
+                      duration: 1,
+                      delay: i * 0.1,
+                    }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 };
 

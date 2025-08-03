@@ -2,13 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { Github, GraduationCap, Heart } from "lucide-react";
+import { Github, GraduationCap, Heart, Code2, Star, GitBranch } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Import the new components
 import ProjectHeader from "@/components/projects/ProjectHeader";
 import ProjectCarousel from "@/components/projects/ProjectCarousel";
 import ProjectModal from "@/components/projects/ProjectModal";
 import ParallaxBackground from "@/components/projects/ParallaxBackground";
+import GitHubProjects from "@/components/GitHubProjects";
+import GitHubStats from "@/components/GitHubStats";
 import { useMousePosition } from "@/hooks/useMousePosition";
 
 const projects = [
@@ -54,7 +57,6 @@ const projects = [
     description: "VPN сервис",
     image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2070&auto=format&fit=crop"
   },
-  // New projects added below
   {
     name: "Python Обучение",
     url: "https://python.lovable.app/",
@@ -106,6 +108,7 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
   const [exitingPage, setExitingPage] = useState(false);
+  const [activeTab, setActiveTab] = useState("personal");
   const { toast } = useToast();
   const containerRef = useRef(null);
   
@@ -137,6 +140,24 @@ const Projects = () => {
     });
   };
 
+  // Handle GitHub project click
+  const handleGitHubProjectClick = (repo) => {
+    setSelectedProject({
+      name: repo.name,
+      url: repo.html_url,
+      description: repo.description || "Описание отсутствует",
+      image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2088&auto=format&fit=crop",
+      language: repo.language,
+      stars: repo.stargazers_count,
+      forks: repo.forks_count
+    });
+    toast({
+      title: "GitHub проект выбран",
+      description: `Вы выбрали проект: ${repo.name}`,
+      duration: 3000,
+    });
+  };
+
   return (
     <AnimatePresence mode="wait">
       <motion.div 
@@ -152,11 +173,88 @@ const Projects = () => {
         <div className="container mx-auto px-4 py-10 relative z-10">
           <ProjectHeader onNavigate={handleNavigate} />
 
-          <ProjectCarousel 
-            projects={projects} 
-            onProjectClick={handleProjectClick} 
-            loading={loading} 
-          />
+          {/* Enhanced tabs with animations */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="mb-8"
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-900/50 backdrop-blur-sm border border-gray-700/50">
+                <TabsTrigger 
+                  value="personal" 
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
+                >
+                  <Code2 className="w-4 h-4 mr-2" />
+                  Мои проекты
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="github"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
+                >
+                  <Github className="w-4 h-4 mr-2" />
+                  GitHub
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="personal" className="mt-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ProjectCarousel 
+                    projects={projects} 
+                    onProjectClick={handleProjectClick} 
+                    loading={loading} 
+                  />
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="github" className="mt-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="mb-6">
+                    <motion.h2 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, duration: 0.6 }}
+                      className="text-3xl font-bold text-center mb-4 gradient-text"
+                    >
+                      Мои GitHub проекты
+                    </motion.h2>
+                    <motion.p 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.6 }}
+                      className="text-center text-gray-300 mb-8"
+                    >
+                      Изучите мои открытые проекты на GitHub
+                    </motion.p>
+                  </div>
+                  
+                  {/* GitHub Stats */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.6 }}
+                    className="mb-8"
+                  >
+                    <GitHubStats username="tetrix8" />
+                  </motion.div>
+                  
+                  <GitHubProjects 
+                    username="tetrix8" 
+                    onProjectClick={handleGitHubProjectClick}
+                  />
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
         </div>
 
         <ProjectModal 
